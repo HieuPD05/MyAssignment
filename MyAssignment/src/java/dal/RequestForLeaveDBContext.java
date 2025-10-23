@@ -188,4 +188,37 @@ public class RequestForLeaveDBContext extends DBContext<RequestForLeave> {
     public void delete(RequestForLeave model) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+   public int countByStatus(int eid, int status) {
+    int count = 0;
+    try {
+        // Tạo kết nối mới mỗi lần để tránh bị đóng sớm
+        String sql = """
+            WITH Org AS (
+                SELECT *, 0 as lvl FROM Employee e WHERE e.eid = ?
+                UNION ALL
+                SELECT c.*, o.lvl + 1 FROM Employee c JOIN Org o ON c.supervisorid = o.eid
+            )
+            SELECT COUNT(*) AS total
+            FROM Org o JOIN RequestForLeave r ON r.created_by = o.eid
+            WHERE r.status = ?
+        """;
+
+        PreparedStatement stm = connection.prepareStatement(sql);
+        stm.setInt(1, eid);
+        stm.setInt(2, status);
+        ResultSet rs = stm.executeQuery();
+
+        if (rs.next()) {
+            count = rs.getInt("total");
+        }
+
+        rs.close();
+        stm.close();
+    } catch (SQLException ex) {
+        Logger.getLogger(RequestForLeaveDBContext.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    return count;
+}
+
+
 }

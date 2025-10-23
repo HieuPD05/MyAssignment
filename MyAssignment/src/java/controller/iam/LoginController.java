@@ -21,27 +21,29 @@ import model.iam.User;
 @WebServlet(urlPatterns = "/login")
 public class LoginController extends HttpServlet {
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String username = req.getParameter("username");
-        String password = req.getParameter("password");
-        
-        //validation (santinization)
-        
-        UserDBContext db = new UserDBContext();
-        User u = db.get(username, password);
-        if(u!=null)
-        {
-            HttpSession session = req.getSession();
-            session.setAttribute("auth", u);
-            //print login successful!
-            req.setAttribute("message", "Login Successful!");
-        }
-        else
-        {
-            req.setAttribute("message", "Login Failed!");
-        }
+protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+    req.setCharacterEncoding("UTF-8");
+    String username = req.getParameter("username");
+    String password = req.getParameter("password");
+
+    UserDBContext db = new UserDBContext();
+    User u = db.get(username, password);
+
+    if (u != null) {
+        // Lưu session
+        HttpSession session = req.getSession();
+        session.setAttribute("auth", u);
+
+        // ✅ CHUYỂN HƯỚNG ĐẾN TRANG HOME
+        resp.sendRedirect(req.getContextPath() + "/home");
+    } else {
+        // Sai tài khoản → quay lại login
+        req.setAttribute("message", "❌ Sai tên đăng nhập hoặc mật khẩu!");
         req.getRequestDispatcher("view/auth/message.jsp").forward(req, resp);
     }
+}
+
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

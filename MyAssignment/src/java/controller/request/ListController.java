@@ -18,10 +18,12 @@ public class ListController extends BaseRequiredAuthorizationController {
             throws ServletException, IOException {
 
         RequestForLeaveDBContext db = new RequestForLeaveDBContext();
+
+        // ✅ Dùng employee ID (đúng)
         ArrayList<RequestForLeave> requests = db.getByEmployeeAndSubodiaries(user.getEmployee().getId());
 
-        req.setAttribute("requests", requests);
-        req.getRequestDispatcher("../view/request/list.jsp").forward(req, resp);
+        req.setAttribute("rfls", requests); // ⚠️ nhớ dùng cùng tên biến với list.jsp
+        req.getRequestDispatcher("/view/request/list.jsp").forward(req, resp); // ✅ Sửa lại đường dẫn tuyệt đối
     }
 
     @Override

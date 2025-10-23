@@ -1,4 +1,4 @@
-<%@page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -6,45 +6,116 @@
     <meta charset="UTF-8">
     <title>Tạo đơn nghỉ phép</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f7fa; margin: 40px; }
-        .form-container {
-            width: 400px; margin: 0 auto; background: #fff;
-            padding: 25px; border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f7fa;
+            margin: 0;
+            padding: 0;
         }
-        h2 { color: #004a99; text-align: center; margin-bottom: 20px; }
-        label { font-weight: bold; display: block; margin-top: 10px; }
-        input, textarea, button {
-            width: 100%; padding: 8px; margin-top: 5px;
-            border: 1px solid #ccc; border-radius: 5px;
+
+        .navbar {
+            background: #007acc;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
         }
-        textarea { resize: none; }
-        button {
-            background: #007acc; color: white; font-weight: bold;
-            margin-top: 15px; cursor: pointer; transition: 0.3s;
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: bold;
         }
-        button:hover { background: #005fa3; }
-        .error { color: red; text-align: center; margin-top: 10px; }
+
+        .container {
+            width: 450px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #004a99;
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="date"], textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        input[type="submit"] {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background: #005f99;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            border: 2px solid #f44336;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <h2>📝 Đơn xin nghỉ phép</h2>
-        <form action="create" method="POST" accept-charset="UTF-8">
+
+    <div class="navbar">
+        <div><b>📝 Tạo đơn nghỉ phép</b></div>
+        <div>
+            <a href="${pageContext.request.contextPath}/home">🏠 Trang chủ</a>
+            <a href="${pageContext.request.contextPath}/request/list">📋 Danh sách</a>
+            <a href="${pageContext.request.contextPath}/logout">🚪 Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Đơn xin nghỉ phép</h2>
+
+        <c:if test="${not empty error}">
+            <div class="error">${error}</div>
+        </c:if>
+
+        <form action="${pageContext.request.contextPath}/request/create" method="post">
             <label>Từ ngày:</label>
             <input type="date" name="from" required>
 
-            <label>Tới ngày:</label>
+            <label>Đến ngày:</label>
             <input type="date" name="to" required>
 
-            <label>Lý do:</label>
-            <textarea name="reason" rows="4" placeholder="Nhập lý do nghỉ..." required></textarea>
+            <label>Lý do nghỉ phép:</label>
+            <textarea name="reason" rows="4" placeholder="Nhập lý do nghỉ phép..." required></textarea>
 
-            <button type="submit">Gửi yêu cầu</button>
+            <div style="text-align:center;">
+                <input type="submit" value="Gửi đơn">
+            </div>
         </form>
-        <c:if test="${not empty error}">
-            <p class="error">${error}</p>
-        </c:if>
     </div>
 </body>
 </html>

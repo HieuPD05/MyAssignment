@@ -11,45 +11,58 @@ import java.sql.Date;
 import model.RequestForLeave;
 import model.iam.User;
 
+/**
+ * @author sonnt
+ */
 @WebServlet(urlPatterns = "/request/create")
 public class CreateController extends BaseRequiredAuthorizationController {
 
     @Override
-    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
-
-        // Bắt buộc đặt đầu tiên để đọc UTF-8 đúng
-        req.setCharacterEncoding("UTF-8");
-
-        try {
-            Date from = Date.valueOf(req.getParameter("from"));
-            Date to = Date.valueOf(req.getParameter("to"));
-            String reason = req.getParameter("reason");
-
-            if (reason == null || reason.trim().isEmpty()) {
-                throw new Exception("Reason cannot be empty");
-            }
-
-            RequestForLeave r = new RequestForLeave();
-            r.setCreated_by(user.getEmployee());
-            r.setFrom(from);
-            r.setTo(to);
-            r.setReason(reason);
-            r.setStatus(0); // In Progress
-
-            RequestForLeaveDBContext db = new RequestForLeaveDBContext();
-            db.insert(r);
-
-            resp.sendRedirect("list");
-        } catch (Exception e) {
-            req.setAttribute("error", "❗ Vui lòng nhập đầy đủ thông tin hợp lệ!");
-            req.getRequestDispatcher("../view/request/create.jsp").forward(req, resp);
-        }
+        // Hiển thị form tạo đơn
+        req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
     }
 
     @Override
-    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
-        req.getRequestDispatcher("../view/request/create.jsp").forward(req, resp);
+        try {
+            // Lấy dữ liệu từ form
+            String from_raw = req.getParameter("from");
+            String to_raw = req.getParameter("to");
+            String reason = req.getParameter("reason");
+
+            // Kiểm tra hợp lệ
+            if (from_raw == null || to_raw == null || reason == null || reason.trim().isEmpty()) {
+                req.setAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
+                req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
+                return;
+            }
+
+            Date from = Date.valueOf(from_raw);
+            Date to = Date.valueOf(to_raw);
+
+            // Tạo đối tượng Request
+            RequestForLeave r = new RequestForLeave();
+            r.setFrom(from);
+            r.setTo(to);
+            r.setReason(reason);
+            r.setCreated_by(user.getEmployee());
+            r.setStatus(0); // In progress
+
+            // Lưu vào DB
+            RequestForLeaveDBContext db = new RequestForLeaveDBContext();
+            db.insert(r);
+
+            // Chuyển hướng về danh sách kèm thông báo
+            req.getSession().setAttribute("message", "✅ Tạo đơn nghỉ phép thành công!");
+            resp.sendRedirect(req.getContextPath() + "/request/list");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("error", "❌ Lỗi khi tạo đơn nghỉ phép: " + e.getMessage());
+            req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
+        }
     }
 }

@@ -4,87 +4,143 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>📋 Danh sách đơn nghỉ phép</title>
+    <title>Danh sách đơn nghỉ phép</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Segoe UI", Arial, sans-serif;
             background: #f4f7fa;
-            margin: 30px;
+            margin: 0;
+            padding: 0;
         }
-        h2 {
-            color: #003366;
-            text-align: left;
-            margin-bottom: 20px;
+
+        .navbar {
+            background: #007acc;
+            color: white;
+            padding: 12px 20px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
         }
-        h2::before {
-            content: "🗂️";
-            font-size: 28px;
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: bold;
         }
+
+        h2 {
+            color: #004a99;
+            margin: 20px;
+        }
+
         table {
-            width: 100%;
+            width: 95%;
+            margin: 0 auto;
             border-collapse: collapse;
-            background: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
         }
+
         th, td {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
         }
+
         th {
-            background-color: #007acc;
+            background: #007acc;
             color: white;
-            text-transform: uppercase;
         }
+
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background: #f9f9f9;
         }
+
         a {
             color: #004a99;
             text-decoration: none;
-            font-weight: bold;
         }
+
         a:hover {
             text-decoration: underline;
-            color: #0066cc;
         }
-        .status {
+
+        .status-approved {
+            color: #2e7d32;
             font-weight: bold;
-            border-radius: 5px;
-            padding: 4px 10px;
-            display: inline-block;
-            min-width: 90px;
+            background: #e8f5e9;
         }
-        .status.inprogress { color: #ff9800; background: #fff3cd; }
-        .status.approved  { color: #2e7d32; background: #e8f5e9; }
-        .status.rejected  { color: #c62828; background: #ffebee; }
-        .topbar {
-            margin-bottom: 20px;
+
+        .status-rejected {
+            color: #c62828;
+            font-weight: bold;
+            background: #ffebee;
+        }
+
+        .status-progress {
+            color: #ff9800;
+            font-weight: bold;
+            background: #fff8e1;
+        }
+
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 95%;
+            margin: 20px auto;
         }
-        .btn {
+
+        .add-btn {
             background: #007acc;
             color: white;
+            border: none;
             padding: 8px 14px;
             border-radius: 6px;
+            cursor: pointer;
             text-decoration: none;
-            font-weight: bold;
-            transition: 0.3s;
         }
-        .btn:hover { background: #005fa3; }
+
+        .add-btn:hover {
+            background: #005f99;
+        }
+
+        .msg {
+            width: 90%;
+            margin: 15px auto;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            color: #2e7d32;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <div class="topbar">
-        <h2>Danh sách đơn nghỉ phép</h2>
-        <a href="${pageContext.request.contextPath}/request/create" class="btn">+ Tạo đơn mới</a>
+    <div class="navbar">
+        <div><b>📋 Danh sách đơn nghỉ phép</b></div>
+        <div>
+            <a href="${pageContext.request.contextPath}/home">🏠 Trang chủ</a>
+            <a href="${pageContext.request.contextPath}/request/create">📝 Tạo đơn</a>
+            <a href="${pageContext.request.contextPath}/logout">🚪 Logout</a>
+        </div>
     </div>
+
+    <div class="top-bar">
+        <h2>📁 Danh sách đơn nghỉ phép</h2>
+        <a href="${pageContext.request.contextPath}/request/create" class="add-btn">+ Tạo đơn mới</a>
+    </div>
+
+    <!-- Hiển thị thông báo tạo đơn thành công -->
+    <c:if test="${not empty sessionScope.message}">
+        <div class="msg">${sessionScope.message}</div>
+        <c:remove var="message" scope="session"/>
+    </c:if>
 
     <table>
         <tr>
@@ -96,27 +152,23 @@
             <th>Processed By</th>
         </tr>
 
-        <c:forEach var="r" items="${requests}">
+        <c:forEach var="r" items="${rfls}">
             <tr>
-                <td>
-                    <a href="${pageContext.request.contextPath}/request/review?rid=${r.id}">
-                        ${r.reason}
-                    </a>
-                </td>
+                <td><a href="${pageContext.request.contextPath}/request/review?rid=${r.id}">${r.reason}</a></td>
                 <td>${r.from}</td>
                 <td>${r.to}</td>
                 <td>${r.created_by.name}</td>
                 <td>
                     <c:choose>
-                        <c:when test="${r.status == 0}">
-                            <span class="status inprogress">In Progress</span>
-                        </c:when>
                         <c:when test="${r.status == 1}">
-                            <span class="status approved">Approved</span>
+                            <span class="status-approved">Approved</span>
                         </c:when>
                         <c:when test="${r.status == 2}">
-                            <span class="status rejected">Rejected</span>
+                            <span class="status-rejected">Rejected</span>
                         </c:when>
+                        <c:otherwise>
+                            <span class="status-progress">In Progress</span>
+                        </c:otherwise>
                     </c:choose>
                 </td>
                 <td>
