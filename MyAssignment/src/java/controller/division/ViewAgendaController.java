@@ -27,7 +27,7 @@ public class ViewAgendaController extends BaseRequiredAuthorizationController {
             throws ServletException, IOException {
         try {
             String from_raw = req.getParameter("from");
-            String to_raw   = req.getParameter("to");
+            String to_raw = req.getParameter("to");
 
             LocalDate from = (from_raw == null || from_raw.isEmpty())
                     ? LocalDate.now().withDayOfMonth(1)
@@ -38,16 +38,20 @@ public class ViewAgendaController extends BaseRequiredAuthorizationController {
 
             // danh sách ngày cho header
             List<LocalDate> dates = new ArrayList<>();
-            for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) dates.add(d);
+            for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) {
+                dates.add(d);
+            }
 
             RequestForLeaveDBContext db = new RequestForLeaveDBContext();
             ArrayList<RequestForLeave> leaves = db.getByEmployeeAndSubodiaries(user.getEmployee().getId());
 
+            // Tập nhân viên xuất hiện trong danh sách đơn
             Map<Integer, Employee> employees = new LinkedHashMap<>();
             for (RequestForLeave r : leaves) {
                 employees.putIfAbsent(r.getCreated_by().getId(), r.getCreated_by());
             }
 
+            // Bảng agenda: mặc định false (đi làm), true = off nếu có đơn Approved
             Map<Integer, Map<LocalDate, Boolean>> agenda = new LinkedHashMap<>();
             for (Employee e : employees.values()) {
                 Map<LocalDate, Boolean> days = new LinkedHashMap<>();

@@ -3,56 +3,61 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Đăng nhập – HP</title>
-  <style>
-    :root { --overlay: rgba(255,255,255,.75); }
-    *{box-sizing:border-box}
-    body{
-      margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-      font-family:"Segoe UI",Arial,sans-serif;
-      background:
-        linear-gradient(135deg,#e9f5f3,#fdfcfb),
-        url('${pageContext.request.contextPath}/background.jsp?v=1') center/cover no-repeat fixed; /* ✅ đúng file của bạn */
-      position:relative;
-    }
-    body::before{content:"";position:fixed;inset:0;background:var(--overlay);pointer-events:none;}
-    .card{
-      width:440px;background:#fff;border-radius:14px;padding:26px 24px;
-      box-shadow:0 10px 30px rgba(0,0,0,.08)
-    }
-    .brand{display:flex;gap:12px;align-items:center;margin-bottom:16px}
-    .logo{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#007acc;color:#fff;font-weight:800}
-    .title{font-size:22px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    label{display:block;margin-top:12px;font-weight:600;color:#0f3554}
-    input[type=text],input[type=password]{width:100%;padding:12px 14px;margin-top:6px;border:1px solid #c9d4df;border-radius:10px;font-size:14px}
-    .btn{width:100%;margin-top:16px;padding:12px;border:none;border-radius:10px;background:#007acc;color:#fff;font-weight:800;cursor:pointer;transition:.2s}
-    .btn:hover{background:#005fa3;transform:translateY(-1px)}
-    .hint{margin-top:10px;color:#6b7986;font-size:12px}
-    .error{margin-top:10px;background:#ffebee;color:#c62828;border:2px solid #f44336;border-radius:10px;padding:10px;font-weight:600}
-  </style>
+<meta charset="UTF-8">
+<title>Đăng nhập – HP System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+:root { --primary:#3b4b63; --text:#1e293b; --muted:#6b7280; --border:#d1d5db; }
+*{ box-sizing:border-box; margin:0; padding:0 }
+html,body{
+  height:100%;
+  font-family:"Segoe UI", Arial, sans-serif;
+  display:flex; align-items:center; justify-content:flex-end;
+  background: linear-gradient(0deg, rgba(0,0,0,.22), rgba(0,0,0,.22)),
+    url('${pageContext.request.contextPath}/img/860.jpg?v=1') center/cover no-repeat fixed;
+  position:relative; overflow:hidden;
+}
+.panel{
+  position:relative; z-index:1; background:#fff; width:430px; border-radius:25px;
+  box-shadow:0 10px 40px rgba(0,0,0,.20); padding:40px 38px 45px; margin-right:6vw;
+  border:1px solid #e3e6eb; animation:fadeInUp .6s ease-out;
+}
+@keyframes fadeInUp{ from{ opacity:0; transform:translateY(30px) } to{ opacity:1; transform:translateY(0) } }
+.brand{ display:flex; align-items:center; gap:14px; margin-bottom:24px; white-space:nowrap }
+.logo{ width:50px; height:50px; border-radius:50%; background:var(--primary); color:#fff; display:grid; place-items:center; font-weight:700; font-size:18px }
+.title{ font-size:22px; font-weight:700; color:var(--text) }
+label{ display:block; margin-top:16px; font-weight:600; color:var(--text) }
+input[type=text], input[type=password]{ width:100%; padding:12px 14px; margin-top:6px; border:1px solid var(--border); border-radius:10px; background:#f9fafb; font-size:15px; transition:.25s }
+input:focus{ border-color:var(--primary); background:#fff; box-shadow:0 0 0 3px rgba(59,75,99,.15); outline:none }
+.btn{ width:100%; margin-top:18px; padding:12px; background:var(--primary); border:none; border-radius:10px; color:#fff; font-weight:700; letter-spacing:.5px; cursor:pointer; transition:.25s }
+.btn:hover{ background:#2f3d52; transform:translateY(-1px) }
+.hint{ margin-top:14px; text-align:center; color:var(--muted); font-size:13px }
+/* 🔴 lỗi ngay dưới ô mật khẩu */
+.error-inline{ margin-top:8px; color:#d32f2f; font-size:13px; font-weight:600 }
+@media (max-width:900px){ body{ justify-content:center } .panel{ margin-right:0; width:92% } }
+</style>
 </head>
 <body>
-  <div class="card">
-    <div class="brand">
-      <div class="logo">eL</div>
-      <h1 class="title">Đăng nhập hệ thống nghỉ phép</h1>
-    </div>
+<div class="panel">
+  <div class="brand">
+    <div class="logo">HP</div>
+    <h2 class="title">Hệ thống quản lí nghỉ phép</h2>
+  </div>
+  <form action="${pageContext.request.contextPath}/login" method="post" accept-charset="UTF-8">
+    <label for="txtUsername">Tài khoản đăng nhập</label>
+    <input type="text" id="txtUsername" name="username" value="${typedUsername != null ? typedUsername : ''}" required autofocus>
 
-    <c:if test="${not empty requestScope.message}">
-      <div class="error">${requestScope.message}</div>
+    <label for="txtPassword">Mật khẩu</label>
+    <input type="password" id="txtPassword" name="password" required>
+
+    <!-- ❗Lỗi hiển thị ngay dưới ô mật khẩu -->
+    <c:if test="${not empty error}">
+      <div class="error-inline">${error}</div>
     </c:if>
 
-    <form action="${pageContext.request.contextPath}/login" method="post" accept-charset="UTF-8">
-      <label for="txtUsername">Tên đăng nhập</label>
-      <input type="text" id="txtUsername" name="username" required autofocus>
-
-      <label for="txtPassword">Mật khẩu</label>
-      <input type="password" id="txtPassword" name="password" required>
-
-      <button type="submit" class="btn">ĐĂNG NHẬP</button>
-      <div class="hint">Tài khoản mẫu: <b>mra/mrb/mrc/mrd/mre</b> – mật khẩu <b>123</b>.</div>
-    </form>
-  </div>
+    <button type="submit" class="btn">Đăng nhập</button>
+    <div class="hint">Tài khoản mẫu: <b>mra/mrb/mrc/mrd/mre</b> – mật khẩu <b>123</b>.</div>
+  </form>
+</div>
 </body>
 </html>

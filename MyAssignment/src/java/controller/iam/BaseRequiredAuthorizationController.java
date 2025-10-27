@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controller.iam;
 
 import dal.RoleDBContext;
@@ -29,8 +25,7 @@ public abstract class BaseRequiredAuthorizationController extends BaseRequiredAu
         String url = req.getServletPath();
         for (Role role : user.getRoles()) {
             for (Feature feature : role.getFeatures()) {
-                if(feature.getUrl().equals(url))
-                    return true;
+                if(feature.getUrl().equals(url)) return true;
             }
         }
         return false;
@@ -38,20 +33,16 @@ public abstract class BaseRequiredAuthorizationController extends BaseRequiredAu
 
     protected abstract void processPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException;
     protected abstract void processGet(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException ;
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        if(isAuthorized(req, user))
-            processPost(req, resp, user);
-        else
-            resp.getWriter().println("access denied!");
+        if(isAuthorized(req, user)) processPost(req, resp, user);
+        else resp.getWriter().println("access denied!");
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        if(isAuthorized(req, user))
-            processGet(req, resp, user);
-        else
-            resp.getWriter().println("access denied!");
+        if(isAuthorized(req, user)) processGet(req, resp, user);
+        else resp.getWriter().println("access denied!");
     }
-
 }

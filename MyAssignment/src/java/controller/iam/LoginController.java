@@ -18,21 +18,19 @@ import model.iam.Feature;
 public class LoginController extends HttpServlet {
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         String username = req.getParameter("username");
         String password = req.getParameter("password");
 
         UserDBContext db = new UserDBContext();
         User u = db.get(username, password);
-
         if (u != null) {
-            // ✅ tải roles & features
+            // nạp roles & features
             RoleDBContext rdb = new RoleDBContext();
             u.setRoles(rdb.getByUserId(u.getId()));
 
-            // ✅ build allowed map để ẩn/hiện menu
+            // build allowed map để ẩn/hiện menu
             HashMap<String, Boolean> allowed = new HashMap<>();
             for (Role r : u.getRoles()) {
                 for (Feature f : r.getFeatures()) {
@@ -43,17 +41,18 @@ public class LoginController extends HttpServlet {
             HttpSession session = req.getSession();
             session.setAttribute("auth", u);
             session.setAttribute("allowed", allowed);
-
             resp.sendRedirect(req.getContextPath() + "/home");
         } else {
-            req.setAttribute("message", "❌ Sai tên đăng nhập hoặc mật khẩu!");
-            req.getRequestDispatcher("view/auth/message.jsp").forward(req, resp);
+            // ❗Trả về chính trang login và hiển thị lỗi NGAY DƯỚI ô mật khẩu
+            req.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không hợp lệ.");
+            req.setAttribute("typedUsername", username); // giữ lại username đã gõ
+            req.getRequestDispatcher("view/auth/login.jsp").forward(req, resp);
         }
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // mở trang login
         req.getRequestDispatcher("view/auth/login.jsp").forward(req, resp);
     }
 }

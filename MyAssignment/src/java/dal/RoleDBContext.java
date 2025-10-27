@@ -13,26 +13,25 @@ public class RoleDBContext extends DBContext<Role> {
         ArrayList<Role> roles = new ArrayList<>();
         try {
             String sql = """
-                SELECT r.rid, r.rname, f.fid, f.url
-                FROM [User] u
-                INNER JOIN [UserRole] ur ON u.uid = ur.uid
-                INNER JOIN [Role] r ON r.rid = ur.rid
-                INNER JOIN [RoleFeature] rf ON rf.rid = r.rid
-                INNER JOIN [Feature] f ON f.fid = rf.fid
-                WHERE u.uid = ?
-                ORDER BY r.rid, f.fid
+            SELECT r.rid, r.rname, f.fid, f.url
+            FROM [User] u
+            INNER JOIN [UserRole] ur ON u.uid = ur.uid
+            INNER JOIN [Role] r ON r.rid = ur.rid
+            INNER JOIN [RoleFeature] rf ON rf.rid = r.rid
+            INNER JOIN [Feature] f ON f.fid = rf.fid
+            WHERE u.uid = ?
+            ORDER BY r.rid, f.fid
             """;
             PreparedStatement stm = connection.prepareStatement(sql);
             stm.setInt(1, id);
             ResultSet rs = stm.executeQuery();
-
             Role current = new Role();
             current.setId(-1);
             while (rs.next()) {
                 int rid = rs.getInt("rid");
                 if (rid != current.getId()) {
                     current = new Role();
-                    current.setId(rid);                       // ✅ đúng: ID của role là rid
+                    current.setId(rid); // ✅ đúng: ID của role là rid
                     current.setName(rs.getString("rname"));
                     roles.add(current);
                 }
