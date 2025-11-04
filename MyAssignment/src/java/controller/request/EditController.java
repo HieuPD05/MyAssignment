@@ -4,8 +4,7 @@ import controller.iam.BaseRequiredAuthenticationController;
 import dal.RequestForLeaveDBContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.sql.Date;
 import model.RequestForLeave;
@@ -14,7 +13,6 @@ import model.iam.User;
 @WebServlet(urlPatterns = "/request/edit")
 public class EditController extends BaseRequiredAuthenticationController {
 
-    // GET: hiển thị form sửa (chỉ cho phép nếu là chủ đơn & status=0)
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
@@ -25,13 +23,13 @@ public class EditController extends BaseRequiredAuthenticationController {
         RequestForLeave r = new RequestForLeaveDBContext().get(rid);
         if (r == null) { resp.getWriter().println("Không tìm thấy đơn"); return; }
 
-        // Chỉ chủ đơn và đơn đang In Progress (status=0) mới được vào form sửa
+        // Chỉ chủ đơn & status=0 mới được vào form sửa
         if (r.getStatus() != 0 || r.getCreated_by().getId() != user.getEmployee().getId()) {
             resp.getWriter().println("Bạn không có quyền sửa đơn này.");
             return;
         }
 
-        // Tách [TYPE] body từ reason
+        // Tách [TYPE] + body
         String raw = r.getReason() == null ? "" : r.getReason();
         String type = "N/A";
         String body = raw;
@@ -46,7 +44,6 @@ public class EditController extends BaseRequiredAuthenticationController {
         req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
     }
 
-    // POST: lưu sửa (chỉ update nếu là chủ đơn & status=0)
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {

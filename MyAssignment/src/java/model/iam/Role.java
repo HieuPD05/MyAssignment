@@ -3,12 +3,8 @@ package model.iam;
 import java.util.ArrayList;
 import model.BaseModel;
 
-/**
- *
- * @author sonnt
- */
 public class Role extends BaseModel {
-    private String name;
+    private String name;                        // map Role.rname
     private ArrayList<User> users = new ArrayList<>();
     private ArrayList<Feature> features = new ArrayList<>();
 

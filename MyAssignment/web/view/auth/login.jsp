@@ -32,7 +32,6 @@ input:focus{ border-color:var(--primary); background:#fff; box-shadow:0 0 0 3px 
 .btn{ width:100%; margin-top:18px; padding:12px; background:var(--primary); border:none; border-radius:10px; color:#fff; font-weight:700; letter-spacing:.5px; cursor:pointer; transition:.25s }
 .btn:hover{ background:#2f3d52; transform:translateY(-1px) }
 .hint{ margin-top:14px; text-align:center; color:var(--muted); font-size:13px }
-/* 🔴 lỗi ngay dưới ô mật khẩu */
 .error-inline{ margin-top:8px; color:#d32f2f; font-size:13px; font-weight:600 }
 @media (max-width:900px){ body{ justify-content:center } .panel{ margin-right:0; width:92% } }
 </style>
@@ -50,7 +49,6 @@ input:focus{ border-color:var(--primary); background:#fff; box-shadow:0 0 0 3px 
     <label for="txtPassword">Mật khẩu</label>
     <input type="password" id="txtPassword" name="password" required>
 
-    <!-- ❗Lỗi hiển thị ngay dưới ô mật khẩu -->
     <c:if test="${not empty error}">
       <div class="error-inline">${error}</div>
     </c:if>

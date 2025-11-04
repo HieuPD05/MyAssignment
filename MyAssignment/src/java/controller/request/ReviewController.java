@@ -1,12 +1,10 @@
-
 package controller.request;
 
 import controller.iam.BaseRequiredAuthorizationController;
 import dal.RequestForLeaveDBContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import java.io.IOException;
 import model.RequestForLeave;
 import model.iam.User;
@@ -15,8 +13,8 @@ import model.iam.User;
 public class ReviewController extends BaseRequiredAuthorizationController {
 
     @Override
-    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        // Đặt encoding UTF-8 cho output (fix lỗi tiếng Việt)
+    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user)
+            throws ServletException, IOException {
         resp.setContentType("text/html; charset=UTF-8");
         req.setCharacterEncoding("UTF-8");
 
@@ -41,21 +39,14 @@ public class ReviewController extends BaseRequiredAuthorizationController {
     }
 
     @Override
-    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
+    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
+            throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         int rid = Integer.parseInt(req.getParameter("rid"));
         String action = req.getParameter("action"); // approve hoặc reject
 
-        int status;
-        if ("approve".equalsIgnoreCase(action)) {
-            status = 1; // Approved
-        } else {
-            status = 2; // Rejected
-        }
-
-        RequestForLeaveDBContext db = new RequestForLeaveDBContext();
-        db.updateStatus(rid, status, user.getEmployee().getId());
-
+        int status = "approve".equalsIgnoreCase(action) ? 1 : 2;
+        new RequestForLeaveDBContext().updateStatus(rid, status, user.getEmployee().getId());
         resp.sendRedirect("list");
     }
 }

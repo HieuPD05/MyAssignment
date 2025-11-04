@@ -6,24 +6,18 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author sonnt
- */
 public abstract class DBContext<T extends BaseModel> {
-    //open connection
     protected Connection connection = null;
 
     public DBContext() {
         try {
-            String user = "HieuPD";
-            String pass = "11111111";
-            String url = "jdbc:sqlserver://localhost:1433;databaseName= MyAssignment;encrypt=true;trustServerCertificate=true;";
+            String user = "HieuPD";             // đổi theo máy bạn
+            String pass = "11111111";           // đổi theo máy bạn
+            // ✅ databaseName = HP_LeaveMgmt (theo HP.sql)
+            String url  = "jdbc:sqlserver://localhost:1433;databaseName=HP_LeaveMgmt;encrypt=true;trustServerCertificate=true;";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, user, pass);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
+        } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

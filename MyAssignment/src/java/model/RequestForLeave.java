@@ -1,25 +1,19 @@
 package model;
 
-import java.util.Date;
-
-/**
- *
- * @author sonnt
- */
 public class RequestForLeave extends BaseModel {
     private Employee created_by;
     private java.util.Date created_time;
     private java.sql.Date from;
     private java.sql.Date to;
-    private String reason;
-    private int status;
+    private String reason;      // quy ước: "[TYPE] body"
+    private int status;         // 0=InProgress, 1=Approved, 2=Rejected
     private Employee processed_by;
 
     public Employee getCreated_by() { return created_by; }
     public void setCreated_by(Employee created_by) { this.created_by = created_by; }
 
-    public Date getCreated_time() { return created_time; }
-    public void setCreated_time(Date created_time) { this.created_time = created_time; }
+    public java.util.Date getCreated_time() { return created_time; }
+    public void setCreated_time(java.util.Date created_time) { this.created_time = created_time; }
 
     public java.sql.Date getFrom() { return from; }
     public void setFrom(java.sql.Date from) { this.from = from; }

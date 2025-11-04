@@ -23,88 +23,41 @@ h2{margin:0}
 .btn{background:var(--base);border:1px solid var(--line);color:#fff;padding:10px 14px;border-radius:12px;text-decoration:none;font-weight:800}
 .btn:hover{background:var(--base-soft);border-color:#51637d}
 .panel{background:var(--base);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
-
 table{width:100%;border-collapse:separate;border-spacing:0 10px;color:#fff; table-layout:fixed}
 thead th{padding:8px 10px;text-align:left; position:relative}
 tbody tr{background:var(--base-strong);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px}
 tbody td{padding:12px;vertical-align:middle; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 tbody tr:hover{background:var(--base-soft)}
-
 a.rowlink{color:#fff;text-decoration:none;border-bottom:1px dashed transparent}
 a.rowlink:hover{border-bottom-color:#fff}
-
 .status-pill{padding:6px 10px;border-radius:999px;font-weight:800;display:inline-block}
 .status-approved{background:#22c55e;color:#fff;border:1px solid #178a41}
 .status-rejected{background:#ef4444;color:#fff;border:1px solid #b72f2f}
 .status-progress{background:rgba(245,158,11,.18);color:#fde68a;border:1px solid rgba(245,158,11,.35)}
-
-.actions{               /* ✅ đảm bảo nút Hủy không bị cắt */
-  display:flex; gap:8px; align-items:center; justify-content:flex-start;
-  overflow:visible; white-space:normal;
-}
-.actions a,.actions form button{
-  display:inline-block; padding:6px 10px; border-radius:10px; border:1px solid #44556f; background:#2b3748; color:#fff;
-  text-decoration:none; font-weight:700; cursor:pointer;
-}
+.actions{display:flex; gap:8px; align-items:center; overflow:visible; white-space:normal;}
+.actions a,.actions form button{ display:inline-block; padding:6px 10px; border-radius:10px; border:1px solid #44556f; background:#2b3748; color:#fff; text-decoration:none; font-weight:700; cursor:pointer;}
 .actions .danger{ background:#7f1d1d; border-color:#991b1b }
-
 .errorBox{ background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.4); color:#fee2e2; padding:14px; border-radius:12px; }
-
-/* Popover dùng chung cho “Tạo bởi” + “Trạng thái” */
-.pop{
-  display:none; position:absolute; left:8px; top:100%; margin-top:6px;
-  background:var(--base-strong); border:1px solid var(--line); border-radius:10px;
-  padding:8px; box-shadow:0 10px 20px rgba(0,0,0,.35); z-index:5;
-}
-.pop input, .pop select{
-  width:220px; padding:8px 10px; border-radius:8px; border:1px solid #44556f;
-  background:#2b3748; color:#fff; outline:none;
-}
+.pop{ display:none; position:absolute; left:8px; top:100%; margin-top:6px; background:#2b3748; border:1px solid var(--line); border-radius:10px; padding:8px; box-shadow:0 10px 20px rgba(0,0,0,.35); z-index:5; }
+.pop input, .pop select{ width:220px; padding:8px 10px; border-radius:8px; border:1px solid #44556f; background:#2b3748; color:#fff; outline:none; }
 .th-click{cursor:pointer; user-select:none}
 .badge{display:inline-block; padding:6px 12px; border-radius:999px; background:#111827; border:1px solid #8a7a3e; color:#fde68a; font-weight:800}
 </style>
-
 <script>
 function qs(){ return new URLSearchParams(window.location.search); }
 function setAndGo(params){ window.location = window.location.pathname + '?' + params.toString(); }
-
-/* ====== Name filter ====== */
-function toggleNamePop(ev){
-  ev.stopPropagation();                         // ✅ không bị đóng ngay
-  const el = document.getElementById('name-pop');
-  el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-  if (el.style.display === 'block'){ const ip = document.getElementById('qinput'); ip.focus(); ip.select(); }
-}
-function submitNameFilter(ev){
-  ev.preventDefault();
-  const q = document.getElementById('qinput').value.trim();
-  const p = qs();
-  if (q) p.set('q', q); else p.delete('q');
-  if (!p.has('status')) p.set('status','all');
-  setAndGo(p);
-}
-
-/* ====== Status filter ====== */
-function toggleStatusPop(ev){
-  ev.stopPropagation();                         // ✅ không bị đóng ngay
-  const el = document.getElementById('status-pop');
-  el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-  if (el.style.display === 'block'){ document.getElementById('statusSel').focus(); }
-}
-function onStatusChange(sel){
-  const p = qs(); p.set('status', sel.value); setAndGo(p);
-}
-
-/* click ngoài thì đóng popover (nhưng không đóng khi click trong pop) */
+function toggleNamePop(ev){ ev.stopPropagation(); const el=document.getElementById('name-pop'); el.style.display = (el.style.display==='block')?'none':'block'; if(el.style.display==='block'){ const ip=document.getElementById('qinput'); ip.focus(); ip.select(); } }
+function submitNameFilter(ev){ ev.preventDefault(); const q=document.getElementById('qinput').value.trim(); const p=qs(); if(q) p.set('q',q); else p.delete('q'); if(!p.has('status')) p.set('status','all'); setAndGo(p); }
+function toggleStatusPop(ev){ ev.stopPropagation(); const el=document.getElementById('status-pop'); el.style.display = (el.style.display==='block')?'none':'block'; if(el.style.display==='block'){ document.getElementById('statusSel').focus(); } }
+function onStatusChange(sel){ const p=qs(); p.set('status', sel.value); setAndGo(p); }
 document.addEventListener('click', function(e){
   ['name-pop','status-pop'].forEach(id=>{
-    const pop = document.getElementById(id);
-    const th  = document.getElementById(id === 'name-pop' ? 'th-creator' : 'th-status');
+    const pop=document.getElementById(id);
+    const th =document.getElementById(id==='name-pop'?'th-creator':'th-status');
     if (!pop || !th) return;
-    if (!pop.contains(e.target) && !th.contains(e.target)) pop.style.display = 'none';
+    if (!pop.contains(e.target) && !th.contains(e.target)) pop.style.display='none';
   });
 });
-/* Chặn lan truyền khi click bên trong popover */
 function stopInside(ev){ ev.stopPropagation(); }
 </script>
 </head>
@@ -113,12 +66,9 @@ function stopInside(ev){ ev.stopPropagation(); }
   <div class="brand"><div class="logo">HP</div>Hệ thống Quản lý Nghỉ phép</div>
   <nav class="menu">
     <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
-    <c:if test="${sessionScope.allowed['/request/create']}">
-      <a href="${pageContext.request.contextPath}/request/create">Tạo đơn</a>
-    </c:if>
-    <c:if test="${sessionScope.allowed['/division/agenda']}">
-      <a href="${pageContext.request.contextPath}/division/agenda">Agenda</a>
-    </c:if>
+    <c:if test="${sessionScope.allowed['/request/create']}"><a href="${pageContext.request.contextPath}/request/create">Tạo đơn</a></c:if>
+    <c:if test="${sessionScope.allowed['/division/agenda']}"><a href="${pageContext.request.contextPath}/division/agenda">Agenda</a></c:if>
+    <c:if test="${sessionScope.allowed['/admin/audit']}"><a href="${pageContext.request.contextPath}/admin/audit">Audit</a></c:if>
     <a href="${pageContext.request.contextPath}/logout">Logout</a>
   </nav>
 </header>
@@ -147,11 +97,10 @@ function stopInside(ev){ ev.stopPropagation(); }
       <table>
         <thead>
           <tr>
-            <th>Title (Loại đơn)</th>
+            <th>Loại đơn</th>
             <th>Từ</th>
             <th>Đến</th>
 
-            <!-- Tạo bởi -->
             <th id="th-creator" class="th-click" onclick="toggleNamePop(event)">
               Tạo bởi ⌕
               <div id="name-pop" class="pop" onclick="stopInside(event)">
@@ -161,7 +110,6 @@ function stopInside(ev){ ev.stopPropagation(); }
               </div>
             </th>
 
-            <!-- Trạng thái -->
             <th id="th-status" class="th-click" onclick="toggleStatusPop(event)">
               Trạng thái ⌄
               <div id="status-pop" class="pop" onclick="stopInside(event)">
@@ -191,9 +139,7 @@ function stopInside(ev){ ev.stopPropagation(); }
         <c:forEach var="r" items="${rfls}">
           <c:set var="raw" value="${r.reason}" />
           <c:set var="pos" value="${fn:indexOf(raw,']')}" />
-          <c:set var="type" value="${ (not empty raw and fn:startsWith(raw,'[') and pos gt 0)
-             ? fn:substring(raw,1, pos)
-             : 'N/A' }" />
+          <c:set var="type" value="${ (not empty raw and fn:startsWith(raw,'[') and pos gt 0) ? fn:substring(raw,1, pos) : 'N/A' }" />
           <tr>
             <td>${type}</td>
             <td>${r.from}</td>
@@ -213,6 +159,14 @@ function stopInside(ev){ ev.stopPropagation(); }
                 <form action="${pageContext.request.contextPath}/request/cancel" method="post" style="display:inline" onsubmit="return confirm('Hủy đơn này?');">
                   <input type="hidden" name="rid" value="${r.id}"/>
                   <button type="submit" class="danger">🗑️ Hủy</button>
+                </form>
+              </c:if>
+
+              <!-- Nút Admin xoá cứng -->
+              <c:if test="${sessionScope.allowed['/admin/request/delete']}">
+                <form action="${pageContext.request.contextPath}/admin/request/delete" method="post" style="display:inline" onsubmit="return confirm('Admin xoá đơn #${r.id}?');">
+                  <input type="hidden" name="rid" value="${r.id}"/>
+                  <button type="submit" class="danger">🗑️ Admin Delete</button>
                 </form>
               </c:if>
             </td>

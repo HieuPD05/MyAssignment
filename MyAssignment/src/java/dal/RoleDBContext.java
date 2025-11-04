@@ -2,14 +2,16 @@ package dal;
 
 import java.util.ArrayList;
 import model.iam.Role;
+import model.iam.Feature;
+
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import model.iam.Feature;
 
+/** Lấy Role + Feature cho một user (để authorize theo URL feature) */
 public class RoleDBContext extends DBContext<Role> {
 
-    public ArrayList<Role> getByUserId(int id) {
+    public ArrayList<Role> getByUserId(int uid) {
         ArrayList<Role> roles = new ArrayList<>();
         try {
             String sql = """
@@ -23,15 +25,17 @@ public class RoleDBContext extends DBContext<Role> {
             ORDER BY r.rid, f.fid
             """;
             PreparedStatement stm = connection.prepareStatement(sql);
-            stm.setInt(1, id);
+            stm.setInt(1, uid);
             ResultSet rs = stm.executeQuery();
+
             Role current = new Role();
             current.setId(-1);
+
             while (rs.next()) {
                 int rid = rs.getInt("rid");
                 if (rid != current.getId()) {
                     current = new Role();
-                    current.setId(rid); // ✅ đúng: ID của role là rid
+                    current.setId(rid);
                     current.setName(rs.getString("rname"));
                     roles.add(current);
                 }
@@ -40,6 +44,7 @@ public class RoleDBContext extends DBContext<Role> {
                 f.setUrl(rs.getString("url"));
                 current.getFeatures().add(f);
             }
+            rs.close(); stm.close();
         } catch (SQLException ex) {
             Logger.getLogger(RoleDBContext.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
@@ -48,9 +53,9 @@ public class RoleDBContext extends DBContext<Role> {
         return roles;
     }
 
-    @Override public ArrayList<Role> list() { throw new UnsupportedOperationException("Not supported yet."); }
-    @Override public Role get(int id) { throw new UnsupportedOperationException("Not supported yet."); }
-    @Override public void insert(Role model) { throw new UnsupportedOperationException("Not supported yet."); }
-    @Override public void update(Role model) { throw new UnsupportedOperationException("Not supported yet."); }
-    @Override public void delete(Role model) { throw new UnsupportedOperationException("Not supported yet."); }
+    @Override public ArrayList<Role> list() { throw new UnsupportedOperationException("Not supported."); }
+    @Override public Role get(int id)       { throw new UnsupportedOperationException("Not supported."); }
+    @Override public void insert(Role m)    { throw new UnsupportedOperationException("Not supported."); }
+    @Override public void update(Role m)    { throw new UnsupportedOperationException("Not supported."); }
+    @Override public void delete(Role m)    { throw new UnsupportedOperationException("Not supported."); }
 }

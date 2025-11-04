@@ -4,8 +4,7 @@ import controller.iam.BaseRequiredAuthenticationController;
 import dal.RequestForLeaveDBContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +21,7 @@ public class ListController extends BaseRequiredAuthenticationController {
         try {
             HashMap<String, Boolean> allowed = (HashMap<String, Boolean>) obj;
             Boolean v = allowed.get("/request/list");
-            return v != null && v.booleanValue();
+            return v != null && v;
         } catch (ClassCastException ex) {
             return false;
         }
@@ -32,7 +31,7 @@ public class ListController extends BaseRequiredAuthenticationController {
             throws ServletException, IOException {
         req.setAttribute("permError", true);
         req.setAttribute("error",
-            "❌ Tài khoản của bạn chưa đủ quyền xem danh sách đơn (ví dụ: nhân viên chưa chính thức). "
+            "❌ Tài khoản của bạn chưa đủ quyền xem danh sách đơn. "
           + "Vui lòng liên hệ quản lý để được cấp quyền.");
         req.getRequestDispatcher("/view/request/list.jsp").forward(req, resp);
     }
@@ -52,7 +51,7 @@ public class ListController extends BaseRequiredAuthenticationController {
         String statusParam = req.getParameter("status");        // all|0|1|2
         Integer statusFilter = parseStatusFilter(statusParam);  // null = all
 
-        String q = req.getParameter("q"); // tìm tên người tạo (substring, không phân biệt hoa/thường)
+        String q = req.getParameter("q"); // tìm theo tên người tạo (substring)
         String qNorm = (q == null) ? "" : q.trim().toLowerCase();
 
         RequestForLeaveDBContext db = new RequestForLeaveDBContext();

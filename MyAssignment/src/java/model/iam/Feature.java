@@ -3,12 +3,8 @@ package model.iam;
 import java.util.ArrayList;
 import model.BaseModel;
 
-/**
- *
- * @author sonnt
- */
 public class Feature extends BaseModel {
-    private String url;
+    private String url;                 // map với Feature.url trong DB
     private ArrayList<Role> roles = new ArrayList<>();
 
     public String getUrl() { return url; }

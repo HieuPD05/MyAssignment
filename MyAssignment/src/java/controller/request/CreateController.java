@@ -4,8 +4,7 @@ import controller.iam.BaseRequiredAuthenticationController;
 import dal.RequestForLeaveDBContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.HashMap;
@@ -19,11 +18,10 @@ public class CreateController extends BaseRequiredAuthenticationController {
     private boolean canCreate(HttpServletRequest req) {
         Object obj = req.getSession().getAttribute("allowed");
         if (obj == null) return false;
-
         try {
             HashMap<String, Boolean> allowed = (HashMap<String, Boolean>) obj;
             Boolean v = allowed.get("/request/create");
-            return v != null && v.booleanValue();
+            return v != null && v;
         } catch (ClassCastException ex) {
             return false;
         }
@@ -33,29 +31,22 @@ public class CreateController extends BaseRequiredAuthenticationController {
             throws ServletException, IOException {
         req.setAttribute("permError", true);
         req.setAttribute("error",
-            "❌ Tài khoản của bạn chưa đủ quyền tạo đơn (ví dụ: nhân viên chưa chính thức). "
-          + "Vui lòng liên hệ quản lý để được cấp quyền.");
+          "❌ Tài khoản của bạn chưa đủ quyền tạo đơn (ví dụ: nhân viên chưa chính thức). "
+        + "Vui lòng liên hệ quản lý để được cấp quyền.");
         req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
-        if (!canCreate(req)) {
-            showPermissionError(req, resp);
-            return;
-        }
+        if (!canCreate(req)) { showPermissionError(req, resp); return; }
         req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
-        if (!canCreate(req)) {
-            showPermissionError(req, resp);
-            return;
-        }
-
+        if (!canCreate(req)) { showPermissionError(req, resp); return; }
         try {
             String from_raw = req.getParameter("from");
             String to_raw   = req.getParameter("to");
@@ -72,7 +63,6 @@ public class CreateController extends BaseRequiredAuthenticationController {
 
             Date from = Date.valueOf(from_raw);
             Date to   = Date.valueOf(to_raw);
-
             String combinedReason = "[" + rtype.trim() + "] " + reason.trim();
 
             RequestForLeave r = new RequestForLeave();

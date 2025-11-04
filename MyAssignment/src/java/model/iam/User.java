@@ -4,15 +4,11 @@ import java.util.ArrayList;
 import model.BaseModel;
 import model.Employee;
 
-/**
- *
- * @author sonnt
- */
 public class User extends BaseModel {
     private String username;
     private String password;
     private String displayname;
-    private Employee employee;
+    private Employee employee;            // map Enrollment → Employee
     private ArrayList<Role> roles = new ArrayList<>();
 
     public String getUsername() { return username; }
