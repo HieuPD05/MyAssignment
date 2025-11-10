@@ -1,49 +1,54 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="c" uri="http://jakarta.ee/tags/core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8"><title>Sửa đơn nghỉ phép</title>
-  <style>
-    :root { --base:#3b4b63; --base-strong:#334257; --ink:#ffffff; --line:#2d394a; --shadow:0 8px 20px rgba(0,0,0,.25); }
-    body { margin:0; font-family:Inter,"Segoe UI",Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center;
-      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.2)), url('${pageContext.request.contextPath}/img/hinhnen3.jpg') center/cover no-repeat fixed; }
-    body::after{content:"";position:fixed;inset:0;backdrop-filter:blur(2px) saturate(1.05);z-index:0}
-    .form-box { position:relative; z-index:1; width:520px; max-width:92vw; background:var(--base); border:1px solid var(--line); border-radius:18px; padding:28px; box-shadow:var(--shadow); color:#fff }
-    h2 { margin:0 0 18px; font-size:22px; text-align:center }
-    label { display:block; margin-top:14px; margin-bottom:6px; font-weight:600; }
-    .input, textarea { width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:#334257; color:#fff; font-size:15px; }
-    textarea { resize:vertical; min-height:100px }
-    .actions{ display:flex; gap:12px; margin-top:22px; }
-    .btn{ flex:1; padding:12px; border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:16px; }
-    .btn-primary{ background:#1e293b; color:#fff; } .btn-primary:hover{ background:#2d3e59; }
-    .error { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.4); color:#fee2e2; padding:10px; border-radius:12px; margin-bottom:12px; }
-  </style>
+<meta charset="UTF-8">
+<title>Sửa đơn nghỉ</title>
+<style>
+.container{max-width:880px;margin:18px auto;padding:0 14px}
+h1{margin:14px 0}
+form{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px}
+.row{display:grid;grid-template-columns:160px 1fr;gap:10px;align-items:center;margin:8px 0}
+input,select,textarea{padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+.btn{padding:10px 14px;border:none;border-radius:8px;background:#1f2937;color:#fff;cursor:pointer}
+.error{color:#dc2626;margin:8px 0 0 0}
+</style>
 </head>
 <body>
-<div class="form-box">
-  <h2>✏️ Sửa đơn nghỉ phép</h2>
-  <c:if test="${not empty error}"><div class="error">${error}</div></c:if>
-
-  <form action="${pageContext.request.contextPath}/request/edit" method="post">
-    <input type="hidden" name="rid" value="${r.id}"/>
-
-    <label>Loại đơn:</label>
-    <input class="input" type="text" name="rtype" value="${rtype}" required/>
-
-    <label>Từ ngày:</label>
-    <input class="input" type="date" name="from" value="${r.from}" required>
-
-    <label>Đến ngày:</label>
-    <input class="input" type="date" name="to" value="${r.to}" required>
-
-    <label>Lý do nghỉ phép:</label>
-    <textarea name="reason" required>${bodyReason}</textarea>
-
-    <div class="actions">
-      <button type="button" class="btn btn-primary" onclick="history.back()">Hủy</button>
-      <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+<jsp:include page="/view/common/topbar.jspf"/>
+<div class="container">
+  <h1>Sửa đơn #${r.rid}</h1>
+  <form method="post" action="${pageContext.request.contextPath}/request/edit">
+    <input type="hidden" name="rid" value="${r.rid}">
+    <div class="row">
+      <label>Từ ngày</label>
+      <input type="date" name="from"
+             value="${not empty stick_from ? stick_from : r.from}" required>
     </div>
+    <div class="row">
+      <label>Đến ngày</label>
+      <input type="date" name="to"
+             value="${not empty stick_to ? stick_to : r.to}" required>
+    </div>
+    <div class="row">
+      <label>Loại nghỉ</label>
+      <select name="ltid" required>
+        <c:set var="currentLtid" value="${not empty stick_ltid ? stick_ltid : r.ltid}" />
+        <option value="1" ${currentLtid=='1' || currentLtid==1 ? 'selected':''}>Nghỉ phép năm</option>
+        <option value="2" ${currentLtid=='2' || currentLtid==2 ? 'selected':''}>Nghỉ không lương</option>
+        <option value="3" ${currentLtid=='3' || currentLtid==3 ? 'selected':''}>Nghỉ thai sản</option>
+        <option value="4" ${currentLtid=='4' || currentLtid==4 ? 'selected':''}>Khác</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>Lý do</label>
+      <textarea name="reason" rows="3">${not empty stick_reason ? stick_reason : r.reason}</textarea>
+    </div>
+    <div class="row"><label></label><button class="btn" type="submit">Lưu</button></div>
+    <c:if test="${not empty error}">
+      <div class="row"><label></label><div class="error">${error}</div></div>
+    </c:if>
   </form>
 </div>
 </body>

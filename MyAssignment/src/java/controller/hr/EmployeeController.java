@@ -1,63 +1,81 @@
 package controller.hr;
 
-import controller.iam.BaseRequiredAuthorizationController;
-import dal.DivisionDBContext;
-import dal.EmployeeDBContext;
+import dal.AccountRequestDBContext;
+import dal.EmployeeDBContext;           // <-- dùng lớp con để lấy connection
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import model.Department;
-import model.Employee;
-import model.iam.User;
+import java.sql.*;
+import java.util.*;
 
-/**
- * /hr/employee
- * - GET: chọn phòng (did) và xem danh sách + trạng thái
- * - POST: cập nhật trạng thái employment_status (0/1/2)
- */
-@WebServlet(urlPatterns = "/hr/employee")
-public class EmployeeController extends BaseRequiredAuthorizationController {
+public class EmployeeController extends HttpServlet {
 
     @Override
-    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String did_raw = req.getParameter("did");
-        Integer did = null;
-        if (did_raw != null && !did_raw.isEmpty()) {
-            did = Integer.parseInt(did_raw);
-        } else if (user.getEmployee() != null && user.getEmployee().getDept() != null) {
-            did = user.getEmployee().getDept().getId();
-        }
 
-        ArrayList<Department> divisions = new DivisionDBContext().listAll();
-        ArrayList<Employee> employees = new ArrayList<>();
-        if (did != null) {
-            employees = new EmployeeDBContext().listByDivision(did);
-        }
+        String sql = "SELECT e.eid,e.ename,e.position,e.employment_status,d.dcode " +
+                     "FROM Employee e JOIN Division d ON d.did=e.did " +
+                     "ORDER BY d.dcode,e.ename";
 
-        req.setAttribute("divisions", divisions);
-        req.setAttribute("employees", employees);
-        req.setAttribute("did", did);
-        req.getRequestDispatcher("../view/hr/employee.jsp").forward(req, resp);
+        List<Map<String,Object>> rows = new ArrayList<>();
+        try (Connection cn = new EmployeeDBContext().getConnection();      // <-- sửa ở đây
+             PreparedStatement s = cn.prepareStatement(sql);
+             ResultSet rs = s.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String,Object> m = new HashMap<>();
+                m.put("eid", rs.getInt("eid"));
+                m.put("ename", rs.getString("ename"));
+                m.put("position", rs.getString("position"));
+                m.put("status", rs.getString("employment_status"));
+                m.put("div", rs.getString("dcode"));
+                rows.add(m);
+            }
+            req.setAttribute("emps", rows);
+        } catch (SQLException e) {
+            req.setAttribute("error", e.getMessage());
+        }
+        req.getRequestDispatcher("/view/hr/employee.jsp").forward(req, resp);
     }
 
+    // action=update_status | request_account
     @Override
-    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String eid_raw = req.getParameter("eid");
-        String status_raw = req.getParameter("status"); // null|0|1|2
-        Integer status = null;
-        if (status_raw != null && !status_raw.isEmpty()) {
-            status = Integer.valueOf(status_raw);
+
+        String action = req.getParameter("action");
+        try {
+            if ("update_status".equals(action)) {
+                int eid = Integer.parseInt(req.getParameter("eid"));
+                String status = req.getParameter("status"); // Official/Probation/Terminated
+                String sql = "UPDATE Employee SET employment_status=? WHERE eid=?";
+
+                try (Connection cn = new EmployeeDBContext().getConnection();  // <-- sửa ở đây
+                     PreparedStatement s = cn.prepareStatement(sql)) {
+                    s.setString(1, status);
+                    s.setInt(2, eid);
+                    s.executeUpdate();
+                }
+                resp.sendRedirect(req.getContextPath()+"/hr/employee?msg=updated");
+                return;
+            }
+
+            if ("request_account".equals(action)) {
+                int requesterEid = (Integer) req.getSession().getAttribute("eid"); // HR Head thao tác
+                String name = req.getParameter("target_name");
+                String div  = req.getParameter("target_div");
+                String pos  = req.getParameter("target_position");
+                String note = req.getParameter("note");
+
+                new AccountRequestDBContext().create(requesterEid, name, div, pos, note);
+                resp.sendRedirect(req.getContextPath()+"/hr/employee?msg=request-sent");
+                return;
+            }
+
+            doGet(req, resp);
+        } catch (Exception e) {
+            throw new ServletException(e);
         }
-        int eid = Integer.parseInt(eid_raw);
-
-        new EmployeeDBContext().updateEmploymentStatus(eid, status);
-
-        // quay về danh sách của phòng hiện tại
-        String did = req.getParameter("did");
-        resp.sendRedirect(req.getContextPath() + "/hr/employee?did=" + (did == null ? "" : did));
     }
 }

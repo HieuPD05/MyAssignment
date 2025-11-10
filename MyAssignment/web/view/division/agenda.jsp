@@ -1,110 +1,196 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="c" uri="http://jakarta.ee/tags/core" %>
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <title>Agenda – Tình hình lao động của phòng</title>
-  <style>
-    :root{ --base:#3b4b63; --base-strong:#334257; --base-soft:#51637d; --ink:#ffffff; --muted:#e5edf7; --line:#2d394a; --shadow:0 16px 40px rgba(0,0,0,.28); --radius:18px; --ok:#22c55e; --bad:#ef4444; }
-    html{ min-height:100%; background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.2)), url('${pageContext.request.contextPath}/img/hinhnen3.jpg') center/cover no-repeat fixed; }
-    body{margin:0;min-height:100dvh;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink)}
-    body::after{content:"";position:fixed;inset:0;backdrop-filter:blur(2px) saturate(1.05);z-index:0}
-    .topbar{position:sticky;top:0;z-index:10;background:var(--base);border-bottom:1px solid var(--line); box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
-    .brand{display:flex;gap:10px;align-items:center;font-weight:800}
-    .logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#6a7d97,var(--base)); display:grid;place-items:center}
-    .menu{display:flex;gap:10px}
-    .menu a{color:#fff;text-decoration:none;background:var(--base-strong);padding:8px 12px;border-radius:12px;border:1px solid var(--line)}
-    .menu a:hover{background:var(--base-soft)}
-    .wrap{position:relative;z-index:1;max-width:1200px;margin:22px auto;padding:0 16px}
-    .panel{background:var(--base);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-    h2{margin:0 0 12px}
-    form.filters{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-    label{font-weight:800}
-    .input{padding:8px 10px;border-radius:10px;background:var(--base-strong);color:#fff;border:1px solid var(--line)}
-    .btn{background:var(--base);border:1px solid var(--line);color:#fff;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer}
-    .btn:hover{background:var(--base-soft)}
-    .table-wrap{ overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling: touch; padding-bottom:8px; border-radius:12px; box-shadow: inset 0 -6px 10px rgba(0,0,0,.08); }
-    table{ width:100%; border-collapse:separate; border-spacing:6px 10px; color:#fff; table-layout: fixed; white-space:nowrap; min-width: 900px; }
-    thead th{ padding:6px 6px; text-align:center; font-size:12px; color:#dbe3f3; position: sticky; top:0; z-index:3; background:var(--base); }
-    tbody tr{background:var(--base-strong);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px}
-    tbody td{padding:6px; text-align:center; height:34px; border-radius:8px}
-    th.sticky-col, td.sticky-col{ position: sticky; left:0; z-index:4; background:var(--base); box-shadow: 4px 0 8px rgba(0,0,0,.15); }
-    td.sticky-col{ background:var(--base-strong); font-weight:800; text-align:left; padding-left:10px; }
-    .col-day{ width:50px; min-width:50px; max-width:50px; }
-    .col-name{ width:220px; min-width:220px; max-width:220px; }
-    td.work{ background: linear-gradient(180deg, var(--ok) 0%, #1ea851 100%); border:1px solid #178a41; }
-    td.off{ background: linear-gradient(180deg, var(--bad) 0%, #d93c3c 100%); border:1px solid #b72f2f; }
-    .empty{padding:30px;text-align:center;border:1px dashed var(--line);border-radius:12px;background:var(--base-strong)}
-  </style>
-</head>
-<body>
-<header class="topbar">
-  <div class="brand"><div class="logo">HP</div>Hệ thống Quản lý Nghỉ phép</div>
-  <nav class="menu">
-    <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
-    <a href="${pageContext.request.contextPath}/request/list">Danh sách</a>
-    <a href="${pageContext.request.contextPath}/logout">Logout</a>
-  </nav>
-</header>
+    <head>
+        <meta charset="UTF-8">
+        <title>Agenda hôm nay</title>
+        <style>
+            .container{
+                max-width:1100px;
+                margin:18px auto;
+                padding:0 14px
+            }
+            h1{
+                margin:14px 0
+            }
+            .filter{
+                display:flex;
+                gap:10px;
+                align-items:center;
+                margin:10px 0
+            }
+            select{
+                padding:8px;
+                border:1px solid #cbd5e1;
+                border-radius:8px
+            }
+            table{
+                width:100%;
+                border-collapse:collapse;
+                background:#fff;
+                border:1px solid #e5e7eb
+            }
+            th,td{
+                padding:10px;
+                border-bottom:1px solid #e5e7eb;
+                text-align:left
+            }
+            .ok{
+                color:#16a34a;
+                font-weight:600
+            }
+            .off{
+                color:#dc2626;
+                font-weight:600
+            }
+            .pager{
+                margin-top:10px;
+                display:flex;
+                gap:6px
+            }
+            .pager a, .pager span{
+                padding:6px 10px;
+                border:1px solid #e5e7eb;
+                border-radius:8px;
+                text-decoration:none
+            }
+            .active{
+                background:#1f2937;
+                color:#fff;
+                border-color:#1f2937
+            }
+            .stat{
+                margin:8px 0;
+                color:#6b7280
+            }
+        </style>
+    </head>
+    <body>
 
-<main class="wrap">
-  <section class="panel">
-    <h2>📆 Agenda – Tình hình lao động của phòng</h2>
+        <!-- Nếu bạn dùng topbar.jspf thì đổi thành /view/common/topbar.jspf -->
+        <jsp:include page="/view/common/topbar.jsp"/>
 
-    <form class="filters" action="${pageContext.request.contextPath}/division/agenda" method="GET">
-      <label>Từ ngày:</label>
-      <input class="input" type="date" name="from" value="${fromStr}">
-      <label>Đến ngày:</label>
-      <input class="input" type="date" name="to" value="${toStr}">
+        <div class="container">
+            <h1>Tình trạng nhân sự hôm nay</h1>
 
-      <!-- CEO được chọn phòng -->
-      <c:if test="${isCEO}">
-        <label>Phòng:</label>
-        <select class="input" name="did">
-          <option value="">-- tất cả --</option>
-          <c:forEach var="d" items="${divisions}">
-            <option value="${d.id}" ${did == d.id ? 'selected' : ''}>${d.name}</option>
-          </c:forEach>
-        </select>
-      </c:if>
+            <!-- Bộ lọc phòng ban -->
+            <form class="filter" method="get" action="${pageContext.request.contextPath}/division/agenda">
+                <select name="div" onchange="this.form.submit()">
 
-      <button class="btn" type="submit">Xem</button>
-    </form>
+                    <!-- All -->
+                    <c:choose>
+                        <c:when test="${empty param['div']}">
+                            <option value="" selected>— Tất cả phòng —</option>
+                        </c:when>
+                        <c:otherwise>
+                            <option value="">— Tất cả phòng —</option>
+                        </c:otherwise>
+                    </c:choose>
 
-    <c:choose>
-      <c:when test="${not empty employees}">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th class="sticky-col col-name">Nhân sự</th>
-                <c:forEach var="d" items="${dates}">
-                  <th class="col-day">${d}</th>
+                    <!-- IT -->
+                    <c:choose>
+                        <c:when test="${param['div'] eq 'IT'}">
+                            <option value="IT" selected>IT</option>
+                        </c:when>
+                        <c:otherwise>
+                            <option value="IT">IT</option>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <!-- HR -->
+                    <c:choose>
+                        <c:when test="${param['div'] eq 'HR'}">
+                            <option value="HR" selected>HR</option>
+                        </c:when>
+                        <c:otherwise>
+                            <option value="HR">HR</option>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <!-- MKT -->
+                    <c:choose>
+                        <c:when test="${param['div'] eq 'MKT'}">
+                            <option value="MKT" selected>Marketing</option>
+                        </c:when>
+                        <c:otherwise>
+                            <option value="MKT">Marketing</option>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <!-- EXE -->
+                    <c:choose>
+                        <c:when test="${param['div'] eq 'EXE'}">
+                            <option value="EXE" selected>Executive</option>
+                        </c:when>
+                        <c:otherwise>
+                            <option value="EXE">Executive</option>
+                        </c:otherwise>
+                    </c:choose>
+
+                </select>
+            </form>
+
+            <!-- Thống kê: controller đã set stats_off -->
+            <div class="stat">
+                Đang nghỉ (chờ duyệt/đã duyệt) trong trang này:
+                <b>${stats_off}</b>
+            </div>
+
+            <!-- Bảng -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>EID</th>
+                        <th>Tên</th>
+                        <th>Vị trí</th>
+                        <th>Phòng</th>
+                        <th>Hôm nay</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach items="${list}" var="e">
+                        <tr>
+                            <td>${e['eid']}</td>
+                            <td>${e['ename']}</td>
+                            <td>${e['position']}</td>
+                            <td>${e['dcode']}</td>
+                            <td>
+                                <c:choose>
+                                    <!-- leaveStatus: nullable/0/1/2/3 -->
+                                    <c:when test="${e['leaveStatus'] == 0 || e['leaveStatus'] == 1}">
+                                        <span class="off">Nghỉ</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="ok">Đi làm</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                    <c:if test="${empty list}">
+                        <tr>
+                            <td colspan="5">Không có dữ liệu.</td>
+                        </tr>
+                    </c:if>
+                </tbody>
+            </table>
+
+            <!-- Phân trang -->
+            <div class="pager">
+                <c:forEach begin="1" end="${pages}" var="p">
+                    <c:choose>
+                        <c:when test="${p == page}">
+                            <span class="active">${p}</span>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/division/agenda?page=${p}&div=${param['div']}">
+                                ${p}
+                            </a>
+                        </c:otherwise>
+                    </c:choose>
                 </c:forEach>
-              </tr>
-            </thead>
-            <tbody>
-              <c:forEach var="e" items="${employees}">
-                <tr>
-                  <td class="sticky-col col-name">${e.name}</td>
-                  <c:forEach var="d" items="${dates}">
-                    <c:set var="off" value="${agenda[e.id][d]}"/>
-                    <td class="${off ? 'off' : 'work'} col-day"></td>
-                  </c:forEach>
-                </tr>
-              </c:forEach>
-            </tbody>
-          </table>
+            </div>
         </div>
-      </c:when>
-      <c:otherwise>
-        <div class="empty">
-          Không có dữ liệu để hiển thị.<br/>Vui lòng chọn khoảng thời gian khác.
-        </div>
-      </c:otherwise>
-    </c:choose>
-  </section>
-</main>
-</body>
+    </body>
 </html>

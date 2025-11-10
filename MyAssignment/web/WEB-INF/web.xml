@@ -1,9 +1,109 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!-- Giữ tối thiểu để app khởi động -->
 <web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
-         version="6.0">
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0">
+
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
+
+  <!-- AUTH -->
+  <servlet>
+    <servlet-name>LoginController</servlet-name>
+    <servlet-class>controller.iam.LoginController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LoginController</servlet-name>
+    <url-pattern>/login</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>LogoutController</servlet-name>
+    <servlet-class>controller.iam.LogoutController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LogoutController</servlet-name>
+    <url-pattern>/logout</url-pattern>
+  </servlet-mapping>
+
+  <!-- HOME -->
+  <servlet>
+    <servlet-name>HomeController</servlet-name>
+    <servlet-class>controller.home.HomeController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>HomeController</servlet-name>
+    <url-pattern>/home</url-pattern>
+  </servlet-mapping>
+
+  <!-- DIVISION / AGENDA -->
+  <servlet>
+    <servlet-name>ViewAgendaController</servlet-name>
+    <servlet-class>controller.division.ViewAgendaController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ViewAgendaController</servlet-name>
+    <url-pattern>/division/agenda</url-pattern>
+  </servlet-mapping>
+
+  <!-- REQUEST -->
+  <servlet>
+    <servlet-name>CreateController</servlet-name>
+    <servlet-class>controller.request.CreateController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CreateController</servlet-name>
+    <url-pattern>/request/create</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ListController</servlet-name>
+    <servlet-class>controller.request.ListController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ListController</servlet-name>
+    <url-pattern>/request/list</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>EditController</servlet-name>
+    <servlet-class>controller.request.EditController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>EditController</servlet-name>
+    <url-pattern>/request/edit</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ReviewController</servlet-name>
+    <servlet-class>controller.request.ReviewController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ReviewController</servlet-name>
+    <url-pattern>/request/review</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>CancelController</servlet-name>
+    <servlet-class>controller.request.CancelController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CancelController</servlet-name>
+    <url-pattern>/request/cancel</url-pattern>
+  </servlet-mapping>
+
+  <!-- HR -->
+  <servlet>
+    <servlet-name>EmployeeController</servlet-name>
+    <servlet-class>controller.hr.EmployeeController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>EmployeeController</servlet-name>
+    <url-pattern>/hr/employee</url-pattern>
+  </servlet-mapping>
+
+  <session-config>
+    <session-timeout>60</session-timeout>
+  </session-config>
 </web-app>

@@ -1,15 +1,20 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html>
-<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Greeting</title></head>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Thông báo</title>
+<style>
+.container{max-width:820px;margin:18px auto;padding:14px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+.msg{font-size:16px}
+</style>
+</head>
 <body>
-  <c:if test="${sessionScope.auth ne null}">
-    Session of: ${sessionScope.auth.displayname} <br/>
-    employee: ${sessionScope.auth.employee.id} - ${sessionScope.auth.employee.name}
-  </c:if>
-  <c:if test="${sessionScope.auth eq null}">
-    You are not logged in yet!
-  </c:if>
+<jsp:include page="/view/common/topbar.jspf"/>
+<div class="container">
+  <div class="msg">
+    ${error != null ? error : (success != null ? success : 'OK')}
+  </div>
+</div>
 </body>
 </html>

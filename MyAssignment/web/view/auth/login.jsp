@@ -1,5 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="c" uri="http://jakarta.ee/tags/core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -33,6 +33,9 @@ input:focus{ border-color:var(--primary); background:#fff; box-shadow:0 0 0 3px 
 .btn:hover{ background:#2f3d52; transform:translateY(-1px) }
 .hint{ margin-top:14px; text-align:center; color:var(--muted); font-size:13px }
 .error-inline{ margin-top:8px; color:#d32f2f; font-size:13px; font-weight:600 }
+.links{ margin-top:12px; display:flex; justify-content:space-between; align-items:center; font-size:13px }
+.links a{ color:#3b4b63; text-decoration:none }
+.links a:hover{ text-decoration:underline }
 @media (max-width:900px){ body{ justify-content:center } .panel{ margin-right:0; width:92% } }
 </style>
 </head>
@@ -42,9 +45,11 @@ input:focus{ border-color:var(--primary); background:#fff; box-shadow:0 0 0 3px 
     <div class="logo">HP</div>
     <h2 class="title">Hệ thống quản lí nghỉ phép</h2>
   </div>
+
   <form action="${pageContext.request.contextPath}/login" method="post" accept-charset="UTF-8">
     <label for="txtUsername">Tài khoản đăng nhập</label>
-    <input type="text" id="txtUsername" name="username" value="${typedUsername != null ? typedUsername : ''}" required autofocus>
+    <input type="text" id="txtUsername" name="username"
+           value="${typedUsername != null ? typedUsername : ''}" required autofocus>
 
     <label for="txtPassword">Mật khẩu</label>
     <input type="password" id="txtPassword" name="password" required>
@@ -54,7 +59,14 @@ input:focus{ border-color:var(--primary); background:#fff; box-shadow:0 0 0 3px 
     </c:if>
 
     <button type="submit" class="btn">Đăng nhập</button>
-    <div class="hint">Tài khoản mẫu: <b>mra/mrb/mrc/mrd/mre</b> – mật khẩu <b>123</b>.</div>
+
+    <!-- Hàng liên kết phụ: Quên mật khẩu? -->
+    <div class="links">
+      <span></span>
+      <a href="${pageContext.request.contextPath}/auth/reset/request">Quên mật khẩu?</a>
+    </div>
+
+    <div class="hint">Tài khoản mẫu: <b>mrAdmin/mrA/mrB/…</b> – mật khẩu <b>123</b>.</div>
   </form>
 </div>
 </body>

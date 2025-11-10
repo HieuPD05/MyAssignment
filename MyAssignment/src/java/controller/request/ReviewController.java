@@ -1,52 +1,40 @@
 package controller.request;
 
-import controller.iam.BaseRequiredAuthorizationController;
 import dal.RequestForLeaveDBContext;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import model.RequestForLeave;
-import model.iam.User;
 
-@WebServlet(urlPatterns = "/request/review")
-public class ReviewController extends BaseRequiredAuthorizationController {
+public class ReviewController extends HttpServlet {
 
     @Override
-    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        resp.setContentType("text/html; charset=UTF-8");
-        req.setCharacterEncoding("UTF-8");
 
-        String rid_raw = req.getParameter("rid");
-        if (rid_raw == null || rid_raw.trim().isEmpty()) {
-            resp.getWriter().println("❌ Thiếu mã đơn (rid) trên URL!");
-            return;
-        }
+        Integer approverEid = (Integer) req.getSession().getAttribute("eid");
+        if (approverEid == null) { resp.sendRedirect(req.getContextPath()+"/login"); return; }
+
+        String action = req.getParameter("action"); // approve | reject
+        String sRid   = req.getParameter("rid");
+        String note   = req.getParameter("note");
+
         try {
-            int rid = Integer.parseInt(rid_raw);
+            int rid = Integer.parseInt(sRid);
             RequestForLeaveDBContext db = new RequestForLeaveDBContext();
-            RequestForLeave request = db.get(rid);
-            if (request == null) {
-                resp.getWriter().println("❌ Không tìm thấy đơn nghỉ phép có id = " + rid);
+
+            if ("approve".equals(action)) {
+                db.approve(rid, approverEid, note == null ? "" : note);
+                resp.sendRedirect(req.getContextPath()+"/request/list?msg=approved");
                 return;
             }
-            req.setAttribute("request", request);
-            req.getRequestDispatcher("../view/request/review.jsp").forward(req, resp);
-        } catch (NumberFormatException e) {
-            resp.getWriter().println("❌ Mã đơn không hợp lệ!");
+            if ("reject".equals(action)) {
+                db.reject(rid, approverEid, note == null ? "" : note);
+                resp.sendRedirect(req.getContextPath()+"/request/list?msg=rejected");
+                return;
+            }
+            resp.sendRedirect(req.getContextPath()+"/request/list");
+        } catch (Exception e) {
+            throw new ServletException(e);
         }
-    }
-
-    @Override
-    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
-            throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        int rid = Integer.parseInt(req.getParameter("rid"));
-        String action = req.getParameter("action"); // approve hoặc reject
-
-        int status = "approve".equalsIgnoreCase(action) ? 1 : 2;
-        new RequestForLeaveDBContext().updateStatus(rid, status, user.getEmployee().getId());
-        resp.sendRedirect("list");
     }
 }

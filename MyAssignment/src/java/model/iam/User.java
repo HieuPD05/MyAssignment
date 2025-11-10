@@ -1,15 +1,15 @@
 package model.iam;
 
-import java.util.ArrayList;
 import model.BaseModel;
-import model.Employee;
 
 public class User extends BaseModel {
+    private int uid;
     private String username;
-    private String password;
+    private String password;     // lưu hash
     private String displayname;
-    private Employee employee;            // map Enrollment → Employee
-    private ArrayList<Role> roles = new ArrayList<>();
+
+    public int getUid() { return uid; }
+    public void setUid(int uid) { this.uid = uid; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -19,10 +19,4 @@ public class User extends BaseModel {
 
     public String getDisplayname() { return displayname; }
     public void setDisplayname(String displayname) { this.displayname = displayname; }
-
-    public Employee getEmployee() { return employee; }
-    public void setEmployee(Employee employee) { this.employee = employee; }
-
-    public ArrayList<Role> getRoles() { return roles; }
-    public void setRoles(ArrayList<Role> roles) { this.roles = roles; }
 }

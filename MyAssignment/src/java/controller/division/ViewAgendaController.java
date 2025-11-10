@@ -1,125 +1,105 @@
 package controller.division;
 
-import controller.iam.BaseRequiredAuthorizationController;
-import dal.DivisionDBContext;
-import dal.RequestForLeaveDBContext;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.*;
-import model.Department;
-import model.Employee;
-import model.RequestForLeave;
-import model.iam.Role;
-import model.iam.User;
 
-@WebServlet(urlPatterns = "/division/agenda")
-public class ViewAgendaController extends BaseRequiredAuthorizationController {
+import dal.EmployeeDBContext;   // ← mượn connection từ lớp con của DBContext
 
-    private boolean isCEO(User u){
-        for (Role r : u.getRoles()){
-            if ("CEO".equalsIgnoreCase(r.getName())) return true;
-        }
-        return false;
-    }
+public class ViewAgendaController extends HttpServlet {
+
+    private static final int PAGE_SIZE = 10;
 
     @Override
-    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        processGet(req, resp, user);
-    }
 
-    @Override
-    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user)
-            throws ServletException, IOException {
+        String dcode = req.getParameter("div");           // IT/HR/MKT/EXE (optional)
+        int page = 1;
         try {
-            String from_raw = req.getParameter("from");
-            String to_raw   = req.getParameter("to");
+            page = Math.max(1, Integer.parseInt(req.getParameter("page")));
+        } catch (Exception ignore) {
+        }
 
-            LocalDate from = (from_raw == null || from_raw.isEmpty())
-                    ? LocalDate.now().withDayOfMonth(1)
-                    : LocalDate.parse(from_raw);
-            LocalDate to = (to_raw == null || to_raw.isEmpty())
-                    ? from.plusDays(7)
-                    : LocalDate.parse(to_raw);
+        LocalDate today = LocalDate.now();
+        int offset = (page - 1) * PAGE_SIZE;
 
-            // danh sách ngày cho header
-            List<LocalDate> dates = new ArrayList<>();
-            for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) dates.add(d);
+        String whereDiv = (dcode == null || dcode.isBlank()) ? "" : " AND d.dcode = ? ";
 
-            // --- Chọn phòng cho Agenda ---
-            Integer did = null;
-            String did_raw = req.getParameter("did");
-            boolean ceo = isCEO(user);
+        String sqlCount
+                = "SELECT COUNT(*) FROM Employee e JOIN Division d ON d.did=e.did WHERE 1=1 " + whereDiv;
 
-            if (ceo) {
-                if (did_raw != null && !did_raw.isEmpty()) {
-                    did = Integer.parseInt(did_raw);
-                } else {
-                    did = user.getEmployee().getDept() != null ? user.getEmployee().getDept().getId() : null;
+        String sqlList
+                = "SELECT e.eid,e.ename,e.position,e.employment_status,d.dcode, "
+                + "       r.[status] AS leave_status "
+                + "FROM Employee e JOIN Division d ON d.did=e.did "
+                + "LEFT JOIN RequestForLeave r "
+                + "  ON r.created_by=e.eid AND r.[from] <= ? AND r.[to] >= ? "
+                + "WHERE 1=1 " + whereDiv + " "
+                + // ← thêm filter phòng
+                "ORDER BY e.ename OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        int total = 0;
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        // mượn connection từ một DBContext cụ thể
+        try (Connection cn = new EmployeeDBContext().getConnection()) {
+
+            // count
+            try (PreparedStatement s = cn.prepareStatement(sqlCount)) {
+                int i = 1;
+                if (!whereDiv.isBlank()) {
+                    s.setString(i++, dcode);
                 }
-            } else {
-                // không phải CEO: chỉ xem phòng của chính mình
-                did = user.getEmployee().getDept() != null ? user.getEmployee().getDept().getId() : null;
-            }
-
-            // Lấy toàn bộ request (theo org tree user) – như cũ
-            RequestForLeaveDBContext db = new RequestForLeaveDBContext();
-            ArrayList<RequestForLeave> leaves = db.getByEmployeeAndSubodiaries(user.getEmployee().getId());
-
-            // Lọc theo Division nếu có did (CEO hoặc người khác đều áp dụng)
-            if (did != null) {
-                Iterator<RequestForLeave> it = leaves.iterator();
-                while (it.hasNext()) {
-                    RequestForLeave r = it.next();
-                    if (r.getCreated_by() == null || r.getCreated_by().getDept() == null) continue; // nếu không join dept
-                    Integer rdid = r.getCreated_by().getDept().getId();
-                    if (rdid == null || rdid.intValue() != did.intValue()) it.remove();
-                }
-            }
-
-            // Tập nhân viên xuất hiện
-            Map<Integer, Employee> employees = new LinkedHashMap<>();
-            for (RequestForLeave r : leaves) {
-                employees.putIfAbsent(r.getCreated_by().getId(), r.getCreated_by());
-            }
-
-            // Bảng agenda: mặc định false (đi làm), true = off nếu có đơn Approved
-            Map<Integer, Map<LocalDate, Boolean>> agenda = new LinkedHashMap<>();
-            for (Employee e : employees.values()) {
-                Map<LocalDate, Boolean> days = new LinkedHashMap<>();
-                for (LocalDate d : dates) days.put(d, false);
-
-                for (RequestForLeave r : leaves) {
-                    if (r.getCreated_by().getId() == e.getId() && r.getStatus() == 1) {
-                        LocalDate s = r.getFrom().toLocalDate();
-                        LocalDate t = r.getTo().toLocalDate();
-                        for (LocalDate d = s; !d.isAfter(t); d = d.plusDays(1)) {
-                            if (days.containsKey(d)) days.put(d, true);
-                        }
+                try (ResultSet rs = s.executeQuery()) {
+                    if (rs.next()) {
+                        total = rs.getInt(1);
                     }
                 }
-                agenda.put(e.getId(), days);
             }
 
-            // danh sách Division cho CEO chọn
-            ArrayList<Department> divisions = new DivisionDBContext().listAll();
+            // list
+            try (PreparedStatement s = cn.prepareStatement(sqlList)) {
+                int i = 1;
+                s.setDate(i++, java.sql.Date.valueOf(today));
+                s.setDate(i++, java.sql.Date.valueOf(today));
 
-            req.setAttribute("fromStr", from.toString());
-            req.setAttribute("toStr", to.toString());
-            req.setAttribute("dates", dates);
-            req.setAttribute("employees", employees.values());
-            req.setAttribute("agenda", agenda);
-            req.setAttribute("divisions", divisions);
-            req.setAttribute("did", did);
-            req.setAttribute("isCEO", ceo);
+                if (!whereDiv.isBlank()) {
+                    s.setString(i++, dcode);
+                }
+                s.setInt(i++, offset);
+                s.setInt(i++, PAGE_SIZE);
 
-            req.getRequestDispatcher("../view/division/agenda.jsp").forward(req, resp);
+                try (ResultSet rs = s.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> m = new HashMap<>();
+                        m.put("eid", rs.getInt("eid"));
+                        m.put("ename", rs.getString("ename"));
+                        m.put("position", rs.getString("position"));
+                        m.put("status", rs.getString("employment_status"));
+                        m.put("dcode", rs.getString("dcode"));
+                        m.put("leaveStatus", rs.getObject("leave_status")); // null/0/1/2/3
+                        rows.add(m);
+                    }
+                }
+            }
         } catch (Exception e) {
-            e.printStackTrace();
-            resp.getWriter().println("Lỗi khi tải dữ liệu Agenda!");
+            throw new ServletException(e);
         }
+
+        // thống kê đơn giản: số người đang nghỉ (status 0 hoặc 1)
+        long off = rows.stream().filter(x
+                -> Objects.equals(x.get("leaveStatus"), 0) || Objects.equals(x.get("leaveStatus"), 1)
+        ).count();
+
+        req.setAttribute("stats_off", off);
+        req.setAttribute("list", rows);
+        req.setAttribute("page", page);
+        req.setAttribute("pages", (int) Math.ceil(total / (double) PAGE_SIZE));
+        req.setAttribute("div", dcode);
+        req.getRequestDispatcher("/view/division/agenda.jsp").forward(req, resp);
     }
 }

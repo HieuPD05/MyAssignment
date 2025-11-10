@@ -1,25 +1,33 @@
 package model;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+
 public class RequestForLeave extends BaseModel {
-    private Employee created_by;
-    private java.util.Date created_time;
-    private java.sql.Date from;
-    private java.sql.Date to;
-    private String reason;      // quy ước: "[TYPE] body"
-    private int status;         // 0=InProgress, 1=Approved, 2=Rejected
-    private Employee processed_by;
+    private int rid;
+    private int createdBy;
+    private Date from;
+    private Date to;
+    private int ltid;
+    private String reason;
+    private int status;            // 0 Inprogress, 1 Approved, 2 Rejected, 3 Canceled
+    private Integer processedBy;   // nullable
+    private Timestamp processedTime;
 
-    public Employee getCreated_by() { return created_by; }
-    public void setCreated_by(Employee created_by) { this.created_by = created_by; }
+    public int getRid() { return rid; }
+    public void setRid(int rid) { this.rid = rid; }
 
-    public java.util.Date getCreated_time() { return created_time; }
-    public void setCreated_time(java.util.Date created_time) { this.created_time = created_time; }
+    public int getCreatedBy() { return createdBy; }
+    public void setCreatedBy(int createdBy) { this.createdBy = createdBy; }
 
-    public java.sql.Date getFrom() { return from; }
-    public void setFrom(java.sql.Date from) { this.from = from; }
+    public Date getFrom() { return from; }
+    public void setFrom(Date from) { this.from = from; }
 
-    public java.sql.Date getTo() { return to; }
-    public void setTo(java.sql.Date to) { this.to = to; }
+    public Date getTo() { return to; }
+    public void setTo(Date to) { this.to = to; }
+
+    public int getLtid() { return ltid; }
+    public void setLtid(int ltid) { this.ltid = ltid; }
 
     public String getReason() { return reason; }
     public void setReason(String reason) { this.reason = reason; }
@@ -27,6 +35,9 @@ public class RequestForLeave extends BaseModel {
     public int getStatus() { return status; }
     public void setStatus(int status) { this.status = status; }
 
-    public Employee getProcessed_by() { return processed_by; }
-    public void setProcessed_by(Employee processed_by) { this.processed_by = processed_by; }
+    public Integer getProcessedBy() { return processedBy; }
+    public void setProcessedBy(Integer processedBy) { this.processedBy = processedBy; }
+
+    public Timestamp getProcessedTime() { return processedTime; }
+    public void setProcessedTime(Timestamp processedTime) { this.processedTime = processedTime; }
 }

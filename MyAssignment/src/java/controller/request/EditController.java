@@ -1,89 +1,110 @@
 package controller.request;
 
-import controller.iam.BaseRequiredAuthenticationController;
 import dal.RequestForLeaveDBContext;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.sql.Date;
-import model.RequestForLeave;
-import model.iam.User;
+import java.sql.SQLException;
+import java.time.LocalDate;
 
-@WebServlet(urlPatterns = "/request/edit")
-public class EditController extends BaseRequiredAuthenticationController {
+public class EditController extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String rid_raw = req.getParameter("rid");
-        if (rid_raw == null) { resp.getWriter().println("Thiếu rid"); return; }
-        int rid = Integer.parseInt(rid_raw);
+        Integer eid = (Integer) req.getSession().getAttribute("eid");
+        if (eid == null) { resp.sendRedirect(req.getContextPath()+"/login"); return; }
 
-        RequestForLeave r = new RequestForLeaveDBContext().get(rid);
-        if (r == null) { resp.getWriter().println("Không tìm thấy đơn"); return; }
+        String ridStr = req.getParameter("rid");
+        if (ridStr == null) { resp.sendError(400, "Missing rid"); return; }
 
-        // Chỉ chủ đơn & status=0 mới được vào form sửa
-        if (r.getStatus() != 0 || r.getCreated_by().getId() != user.getEmployee().getId()) {
-            resp.getWriter().println("Bạn không có quyền sửa đơn này.");
-            return;
+        try {
+            int rid = Integer.parseInt(ridStr);
+            RequestForLeaveDBContext rdb = new RequestForLeaveDBContext();
+            var r = rdb.get(rid);
+            if (r == null || r.getCreatedBy() != eid || r.getStatus() != 0) {
+                req.setAttribute("error", "Bạn không thể sửa đơn này.");
+                req.getRequestDispatcher("/view/common/message.jsp").forward(req, resp);
+                return;
+            }
+            req.setAttribute("r", r);
+            req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
+        } catch (NumberFormatException nfe) {
+            resp.sendError(400, "Invalid rid");
+        } catch (Exception e) {
+            throw new ServletException(e);
         }
-
-        // Tách [TYPE] + body
-        String raw = r.getReason() == null ? "" : r.getReason();
-        String type = "N/A";
-        String body = raw;
-        int close = raw.indexOf(']');
-        if (raw.startsWith("[") && close > 0) {
-            type = raw.substring(1, close);
-            if (raw.length() >= close + 2) body = raw.substring(close + 2);
-        }
-        req.setAttribute("rtype", type);
-        req.setAttribute("bodyReason", body);
-        req.setAttribute("r", r);
-        req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        try {
-            int rid = Integer.parseInt(req.getParameter("rid"));
-            String from_raw = req.getParameter("from");
-            String to_raw   = req.getParameter("to");
-            String reason   = req.getParameter("reason");
-            String rtype    = req.getParameter("rtype");
+        Integer eid = (Integer) req.getSession().getAttribute("eid");
+        if (eid == null) { resp.sendRedirect(req.getContextPath()+"/login"); return; }
 
-            if (from_raw == null || to_raw == null
-                || reason == null || reason.trim().isEmpty()
-                || rtype == null || rtype.trim().isEmpty()) {
-                req.setAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
-                RequestForLeave cur = new RequestForLeaveDBContext().get(rid);
-                req.setAttribute("r", cur);
-                req.setAttribute("rtype", rtype);
-                req.setAttribute("bodyReason", reason);
+        String ridStr = req.getParameter("rid");
+        String sFrom  = trim(req.getParameter("from"));
+        String sTo    = trim(req.getParameter("to"));
+        String sLtid  = trim(req.getParameter("ltid"));
+        String reason = trim(req.getParameter("reason"));
+
+        try {
+            int rid = Integer.parseInt(ridStr);
+            RequestForLeaveDBContext rdb = new RequestForLeaveDBContext();
+            var r = rdb.get(rid);
+            if (r == null || r.getCreatedBy() != eid || r.getStatus() != 0) {
+                req.setAttribute("error", "Bạn không thể sửa đơn này.");
+                req.getRequestDispatcher("/view/common/message.jsp").forward(req, resp);
+                return;
+            }
+
+            if (sFrom == null || sTo == null || sLtid == null) {
+                stick(req, r, sFrom, sTo, sLtid, reason);
+                req.setAttribute("error", "Vui lòng điền đủ ngày bắt đầu/kết thúc và loại nghỉ.");
                 req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
                 return;
             }
 
-            RequestForLeave r = new RequestForLeave();
-            r.setId(rid);
-            r.setFrom(Date.valueOf(from_raw));
-            r.setTo(Date.valueOf(to_raw));
-            r.setReason("[" + rtype.trim() + "] " + reason.trim());
-
-            int rows = new RequestForLeaveDBContext().updateBasic(r, user.getEmployee().getId());
-            if (rows > 0) {
-                req.getSession().setAttribute("message", "✏️ Đã cập nhật đơn.");
-            } else {
-                req.getSession().setAttribute("message",
-                    "❌ Không thể cập nhật (đơn đã duyệt/bị từ chối hoặc không phải của bạn).");
+            LocalDate from = LocalDate.parse(sFrom); // format mặc định yyyy-MM-dd
+            LocalDate to   = LocalDate.parse(sTo);
+            if (to.isBefore(from)) {
+                stick(req, r, sFrom, sTo, sLtid, reason);
+                req.setAttribute("error", "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.");
+                req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
+                return;
             }
-            resp.sendRedirect(req.getContextPath() + "/request/list");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            req.setAttribute("error", "Lỗi: " + ex.getMessage());
+
+            int ltid = Integer.parseInt(sLtid);
+
+            // Luật 8:00 cho “nghỉ trong ngày hôm nay”
+            if (!rdb.validateSubmitDate(from)) {
+                stick(req, r, sFrom, sTo, sLtid, reason);
+                req.setAttribute("error", "Phải sửa trước 08:00 nếu nghỉ hôm nay.");
+                req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
+                return;
+            }
+
+            rdb.updateBasic(rid, from, to, ltid, reason);
+            resp.sendRedirect(req.getContextPath()+"/request/list?msg=updated");
+        } catch (NumberFormatException nfe) {
+            req.setAttribute("error", "Dữ liệu không hợp lệ (sai định dạng số/ngày).");
             req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
+        } catch (SQLException sqle) {
+            req.setAttribute("error", sqle.getMessage());
+            req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
+        } catch (Exception e) {
+            throw new ServletException(e);
         }
+    }
+
+    private static String trim(String s) { return s == null ? null : s.trim(); }
+
+    private static void stick(HttpServletRequest req, Object r,
+                              String sFrom, String sTo, String sLtid, String reason) {
+        req.setAttribute("r", r);                 // để JSP có dữ liệu cũ
+        req.setAttribute("stick_from", sFrom);    // giữ lại input người dùng
+        req.setAttribute("stick_to", sTo);
+        req.setAttribute("stick_ltid", sLtid);
+        req.setAttribute("stick_reason", reason);
     }
 }
